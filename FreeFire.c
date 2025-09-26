@@ -34,7 +34,7 @@ struct Item *playerBag; // guarda os itens aqui dentro
 
 void addItemToLinkedListRoot(struct Item p, struct Node *node);
 
-void showBag();
+void showBag(int search);
 void gameLogic(int search);
 struct Item addItem(); // create bag and populate with itens
 
@@ -46,8 +46,18 @@ int main(int argc, char *argv[])
 
     // Menu principal com opções:
     // 1. Adicionar um item
+    if (argc <= 1)
+    {
+        printf("Inicie com ./teste 0 (Lista encadeada) ou ./teste 1 (vector)\n");
+        return 1;
+    }
     search = atoi(argv[1]);
-    printf("ei: %d\n", search);
+    if (search != 1 && search != 0)
+    {
+        printf("errour");
+        return 1;
+    }
+
     while (1)
     {
         gameLogic(search);
@@ -91,11 +101,12 @@ struct Item addItem()
     return p;
 }
 
-void binarySearch(char iName[], struct Item *bag, int start, int end)
+void binarySearch(char iName[], struct Item *bag, int start, int end, int operations)
 {
+    operations++;
     if (start > end)
     {
-        printf("Item: %s nao encontrado\n", iName);
+        printf("Item: %s nao encontrado. total de operacoes: %d\n", iName, operations);
         return;
     }
 
@@ -104,17 +115,17 @@ void binarySearch(char iName[], struct Item *bag, int start, int end)
     int cmp = strcmp(bag[mid].name, iName);
     if (cmp == 0)
     {
-        printf("%s e o item de numero: %d\n", bag[mid].name, mid);
+        printf("%s achado! total de operacoes: %d\n", bag[mid].name, operations);
         printf("\n\nPressione enter para voltar...\n");
         getchar();
     }
     else if (cmp < 0)
     {
-        binarySearch(iName, bag, mid + 1, end); 
+        binarySearch(iName, bag, mid + 1, end, operations);
     }
     else
     {
-        binarySearch(iName, bag, start, mid - 1); 
+        binarySearch(iName, bag, start, mid - 1, operations);
     }
 }
 
@@ -317,6 +328,20 @@ void removeItemFromBag(char iName[])
     getchar();
 }
 
+void searchItem(char iName[], int operations)
+{
+
+    for (int i = 0; i < itemCount; i++)
+    {
+        operations++;
+        if (strcmp(playerBag[i].name, iName) == 0)
+        {
+            printf("Achamos o item: %s usando %d operacoes\n", playerBag[i].name, operations);
+            return;
+        }
+    }
+}
+
 // Struct Item:
 // Representa um componente com nome, tipo, quantidade e prioridade (1 a 5).
 // A prioridade indica a importância do item na montagem do plano de fuga.
@@ -417,8 +442,17 @@ void gameLogic(int search)
         // char iName[STRING_SIZE];
         scanf("%s", iName);
         clearInput();
-
-        binarySearch(iName, playerBag, 0, itemCount - 1);
+        int operations = 0;
+        if (search == 0)
+        {
+            binarySearch(iName, playerBag, 0, itemCount - 1, operations);
+        }
+        else
+        {
+            searchItem(iName, operations);
+        }
+        printf("\n\nPressione enter para voltar...\n");
+        getchar();
 
         break;
     default:
