@@ -32,24 +32,25 @@ Node *root = NULL; // inicia um root
 
 struct Item *playerBag; // guarda os itens aqui dentro
 
-void addItemToLinkedListRoot(struct Item p, struct Node* node);
+void addItemToLinkedListRoot(struct Item p, struct Node *node);
 
 void showBag();
-void gameLogic();
+void gameLogic(int search);
 struct Item addItem(); // create bag and populate with itens
 
 void clearInput();
+int search;
 
-int main()
+int main(int argc, char *argv[])
 {
 
     // Menu principal com opções:
     // 1. Adicionar um item
-
-    
+    search = atoi(argv[1]);
+    printf("ei: %d\n", search);
     while (1)
     {
-        gameLogic();
+        gameLogic(search);
     }
 
     // 2. Remover um item
@@ -90,32 +91,180 @@ struct Item addItem()
     return p;
 }
 
+void binarySearch(char iName[], struct Item *bag, int start, int end)
+{
+    if (start > end)
+    {
+        printf("Item: %s nao encontrado\n", iName);
+        return;
+    }
+
+    int mid = (start + end) / 2;
+
+    int cmp = strcmp(bag[mid].name, iName);
+    if (cmp == 0)
+    {
+        printf("%s e o item de numero: %d\n", bag[mid].name, mid);
+        printf("\n\nPressione enter para voltar...\n");
+        getchar();
+    }
+    else if (cmp < 0)
+    {
+        binarySearch(iName, bag, mid + 1, end); 
+    }
+    else
+    {
+        binarySearch(iName, bag, start, mid - 1); 
+    }
+}
+
+// void binarySearch(char iName[], struct Item *bag)
+// {
+//     int half = itemCount / 2;
+//     struct Item *tempBag = NULL;
+
+//     if (strcmp(bag[half].name, iName) == 0)
+//     {
+//         printf("%s e o item de numero: %d\n", bag[half].name, half);
+//         printf("\n\nPressione enter para voltar...\n");
+//         getchar();
+//         return;
+//     }
+//     else if (half < 2)
+//     {
+//         printf("Item: %s nao encontrado\n", iName);
+//         printf("\n\nPressione enter para voltar...\n");
+//         getchar();
+//         return;
+//     }
+//     else if ((strcmp(bag[half].name, iName) < 0))
+//     {
+//         // bag half vem antes de iName
+//         tempBag = malloc((itemCount - half) * sizeof(Item));
+//         for (int i = half, j = 0; i < itemCount; i++, j++)
+//         {
+//             tempBag[j] = bag[i];
+//         }
+//         binarySearch(iName, tempBag);
+//     }
+//     else if ((strcmp(bag[half].name, iName) > 0))
+//     {
+//         // bag vem depois
+//         tempBag = malloc(half * sizeof(Item));
+//         // for (int i = 0; i < half; i++)
+//         // {
+//         //     tempBag[i] = bag[i];
+//         // }
+//         tempBag = bag;
+//         binarySearch(iName, tempBag);
+//     }
+// }
+
+void bubbleSort(struct Item *bag)
+{
+    Item temp;
+    for (int j = 0; j < itemCount - 1; j++)
+    {
+        for (int i = 0; i < itemCount - 1; i++)
+        {
+            if (strcmp(bag[i].name, bag[i + 1].name) > 0)
+            {
+                temp = bag[i + 1];
+                bag[i + 1] = bag[i];
+                bag[i] = temp;
+            }
+        }
+    }
+}
+
 // adiciona item para lista encadeada
 
-void addItemToLinkedListRoot(struct Item p, struct Node* node)
+void addItemToLinkedListRoot(struct Item p, struct Node *node)
 {
 
     if (root == NULL)
     {
-        printf("root esta vazio\n");
-        //criar um root
+
+        // criar um root
         root = malloc(sizeof(Node));
-        root->thisItem = addItem();
+        root->thisItem = p;
         root->nextNode = NULL;
         root->root = 1;
-    } else if (node->nextNode == NULL) {
-        //cria um nextNode
+        itemCount++;
+        printf("%-15s| %-15s| %-15d\n", root->thisItem.name, root->thisItem.type, root->thisItem.quantity);
+        return;
+    }
+    else if (node->nextNode == NULL)
+    {
+        // cria um nextNode
+
         node->nextNode = malloc(sizeof(Node));
-        node->nextNode->thisItem = addItem();
+
+        node->nextNode->thisItem = p;
+
         node->nextNode->root = 0;
+
         node->nextNode->nextNode = NULL;
         printf("Item criado!\n");
+        itemCount++;
+        printf("%-15s| %-15s| %-15d\n", node->nextNode->thisItem.name, node->nextNode->thisItem.type, node->nextNode->thisItem.quantity);
+    }
+    else
+    {
+        // entra no next
 
-    } else {
-        //entra no next
         addItemToLinkedListRoot(p, node->nextNode);
     }
-    
+}
+
+void removeLinkedListItem(char name[], struct Node *node)
+{
+
+    if (node->root == 1 && strcmp(node->thisItem.name, name) == 0)
+    {
+        struct Node *temp = root; // aponta para o node root, para se liberar sua memoria
+
+        if (node->nextNode == NULL)
+        {
+            root = NULL;
+            printf("A lista ficou vazia\n");
+        }
+        else
+        {
+            root = root->nextNode;
+            root->root = 1;
+            printf("%s virou o item numero 1\n", root->thisItem.name);
+            free(temp);
+            temp = NULL;
+            itemCount--;
+        }
+    }
+    else if (node->nextNode == NULL)
+    {
+        printf("Item nao existe\n");
+        return;
+    }
+    else if (strcmp(node->nextNode->thisItem.name, name) == 0)
+    {
+        struct Node *temp = node->nextNode;
+        if (node->nextNode->nextNode == NULL)
+        {
+            node->nextNode = NULL;
+        }
+        else
+        {
+            node->nextNode = node->nextNode->nextNode;
+            printf("deletado\n");
+            free(temp);
+            temp = NULL;
+
+            itemCount--;
+        }
+    }
+    else
+    {
+        removeLinkedListItem(name, node->nextNode);
+    }
 }
 
 // recebe Item , aloca espaço na memoria, adiciona Item pra mochila
@@ -185,7 +334,8 @@ void removeItemFromBag(char iName[])
 // exibirMenu():
 // Apresenta o menu principal ao jogador, com destaque para status da ordenação.
 
-int showMenu(){
+int showMenu()
+{
     int response;
     printf("===============================================\n");
     printf("   MOCHILA DE SOBREVIVENCIA - CODIGO DA ILHA\n");
@@ -195,6 +345,7 @@ int showMenu(){
     printf("1. Adicionar Item(Loot)\n");
     printf("2. Remover Item\n");
     printf("3. Listar Itens na Mochila\n");
+    printf("4. Buscar Item por nome\n");
     printf("0 - Sair\n");
     printf("--------------------------------------\n");
     printf("Escolha uma opcao: ");
@@ -204,9 +355,9 @@ int showMenu(){
     return response;
 }
 
-void gameLogic()
+void gameLogic(int search)
 {
-    
+
     switch (showMenu())
     {
     case 0:
@@ -217,11 +368,20 @@ void gameLogic()
 
         if (itemCount == 10)
         {
-            printf("A Mochila esta cheia!\n");
+            printf("A Mochila esta vazia!\n");
         }
         else
         {
-            addItemToBag(addItem());
+            if (search == 1)
+            {
+
+                addItemToBag(addItem());
+            }
+            else
+            {
+
+                addItemToLinkedListRoot(addItem(), root);
+            }
         }
         break;
 
@@ -230,34 +390,82 @@ void gameLogic()
         char iName[STRING_SIZE];
         scanf("%s", iName);
         clearInput();
-        removeItemFromBag(iName);
+        if (search == 1)
+        {
+
+            removeItemFromBag(iName);
+        }
+        else
+        {
+            removeLinkedListItem(iName, root);
+        }
 
         break;
 
     case 3:
+        if (search == 1)
+        {
+            bubbleSort(playerBag);
+        }
+        showBag(search); // colcoar um if para decidir
+        break;
 
-        showBag();
+    case 4:
 
+        // searchByName();
+        printf("Digite o nome do item a ser procurado: ");
+        // char iName[STRING_SIZE];
+        scanf("%s", iName);
+        clearInput();
+
+        binarySearch(iName, playerBag, 0, itemCount - 1);
+
+        break;
     default:
         break;
     }
 }
+// printa a linked list de forma recursiva
+void printLinkedList(struct Node *node)
+{
 
+    printf("%-15s| %-15s| %-15d\n", node->thisItem.name, node->thisItem.type, node->thisItem.quantity);
+    printf("-------------------------------------------------\n");
 
+    if (node->nextNode != NULL)
+    {
+        printLinkedList(node->nextNode);
+    }
+}
 
-void showBag()
+void showBag(int tipoBag)
 {
 
     printf("--- ITENS NA MOCHILA (%d/%d) ---\n", itemCount, MAX_ITEM);
     printf("-------------------------------------------------\n");
     printf("%-15s| %-15s| %-15s\n", "NOME", "TIPO", "QUANTIDADE");
     printf("-------------------------------------------------\n");
-    for (int i = 0; i < itemCount; i++)
-    {
-        printf("%-15s| %-15s| %-15d\n", playerBag[i].name, playerBag[i].type, playerBag[i].quantity);
-        printf("-------------------------------------------------\n");
-    }
 
+    if (tipoBag == 1)
+    {
+        for (int i = 0; i < itemCount; i++)
+        {
+            printf("%-15s| %-15s| %-15d\n", playerBag[i].name, playerBag[i].type, playerBag[i].quantity);
+            printf("-------------------------------------------------\n");
+        }
+    }
+    else if (tipoBag == 0)
+    {
+        if (root == NULL)
+        {
+            printf("Lista esta vazia\n");
+        }
+        else
+        {
+
+            printLinkedList(root);
+        }
+    }
     printf("\n\nPressione enter para voltar...\n");
     getchar();
 }
