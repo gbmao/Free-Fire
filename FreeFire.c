@@ -21,10 +21,21 @@ typedef struct Item
 
 } Item;
 
+typedef struct Node
+{
+    int root;
+    struct Item thisItem;
+    struct Node *nextNode;
+} Node;
+
+Node *root = NULL; // inicia um root
+
 struct Item *playerBag; // guarda os itens aqui dentro
 
+void addItemToLinkedListRoot(struct Item p, struct Node* node);
+
 void showBag();
-void showMenu();
+void gameLogic();
 struct Item addItem(); // create bag and populate with itens
 
 void clearInput();
@@ -34,9 +45,11 @@ int main()
 
     // Menu principal com opções:
     // 1. Adicionar um item
+
+    
     while (1)
     {
-        showMenu();
+        gameLogic();
     }
 
     // 2. Remover um item
@@ -75,6 +88,34 @@ struct Item addItem()
     p.quantity = iQuantity;
 
     return p;
+}
+
+// adiciona item para lista encadeada
+
+void addItemToLinkedListRoot(struct Item p, struct Node* node)
+{
+
+    if (root == NULL)
+    {
+        printf("root esta vazio\n");
+        //criar um root
+        root = malloc(sizeof(Node));
+        root->thisItem = addItem();
+        root->nextNode = NULL;
+        root->root = 1;
+    } else if (node->nextNode == NULL) {
+        //cria um nextNode
+        node->nextNode = malloc(sizeof(Node));
+        node->nextNode->thisItem = addItem();
+        node->nextNode->root = 0;
+        node->nextNode->nextNode = NULL;
+        printf("Item criado!\n");
+
+    } else {
+        //entra no next
+        addItemToLinkedListRoot(p, node->nextNode);
+    }
+    
 }
 
 // recebe Item , aloca espaço na memoria, adiciona Item pra mochila
@@ -116,14 +157,11 @@ void removeItemFromBag(char iName[])
         }
     }
 
-    
-
     itemCount = 0;
 
     for (int i = 0; i < transitionBagSize; i++)
     {
         addItemToBag(transitionBag[i]);
-
     }
     free(transitionBag);
     printf("\n\nPressione enter para voltar...\n");
@@ -147,8 +185,7 @@ void removeItemFromBag(char iName[])
 // exibirMenu():
 // Apresenta o menu principal ao jogador, com destaque para status da ordenação.
 
-void showMenu()
-{
+int showMenu(){
     int response;
     printf("===============================================\n");
     printf("   MOCHILA DE SOBREVIVENCIA - CODIGO DA ILHA\n");
@@ -164,14 +201,20 @@ void showMenu()
 
     scanf("%d", &response);
     clearInput();
-    switch (response)
+    return response;
+}
+
+void gameLogic()
+{
+    
+    switch (showMenu())
     {
     case 0:
         printf("Saindo........\n");
         exit(0);
         break;
     case 1:
-        // pŕimeiro checar se bag esta full
+
         if (itemCount == 10)
         {
             printf("A Mochila esta cheia!\n");
@@ -199,6 +242,8 @@ void showMenu()
         break;
     }
 }
+
+
 
 void showBag()
 {
