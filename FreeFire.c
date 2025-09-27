@@ -18,6 +18,7 @@ typedef struct Item
     char name[STRING_SIZE];
     char type[STRING_SIZE];
     int quantity;
+    int priority;
 
 } Item;
 
@@ -81,6 +82,7 @@ struct Item addItem()
     char iName[STRING_SIZE];
     char iType[STRING_SIZE];
     int iQuantity;
+    int iPriority;
 
     printf("--- Adicionar Novo Item ---\n");
     printf("Nome do item: ");
@@ -92,12 +94,15 @@ struct Item addItem()
     printf("Quantidade: ");
     scanf("%d", &iQuantity);
     clearInput();
+    printf("Prioridade: ");
+    scanf("%d", &iPriority);
+    clearInput();
 
     strcpy(p.name, iName);
     // exit(1);
     strcpy(p.type, iType);
     p.quantity = iQuantity;
-
+    p.priority = iPriority;
     return p;
 }
 
@@ -171,6 +176,12 @@ void binarySearch(char iName[], struct Item *bag, int start, int end, int operat
 //     }
 // }
 
+void swap(Item *a, Item *b){
+    Item temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
 void bubbleSort(struct Item *bag)
 {
     Item temp;
@@ -180,12 +191,45 @@ void bubbleSort(struct Item *bag)
         {
             if (strcmp(bag[i].name, bag[i + 1].name) > 0)
             {
-                temp = bag[i + 1];
-                bag[i + 1] = bag[i];
-                bag[i] = temp;
+                // temp = bag[i + 1];
+                // bag[i + 1] = bag[i];
+                // bag[i] = temp;
+                swap(&bag[i+1], &bag[i]);
             }
         }
     }
+}
+
+void insertionSort(struct Item *bag,int size){
+    for (int i = 1; i < size; i++)
+    {
+        Item key = bag[i];
+        int j =  i - 1;
+
+        while (j >= 0 && strcmp(bag[j].type, key.type) > 0)
+        {
+            bag[j+1] = bag[j];
+            j--;
+        }
+        bag[j + 1] = key;
+    }
+    
+}
+
+void selectionSort(struct Item *bag, int size){
+    for (int i = 0; i < size; i++)
+    {
+        int lower = i;
+        for(int j = i+1; j < size; j++) {
+            if(bag[j].priority < bag[lower].priority) {
+                lower =j;
+            }
+        }
+        if(lower != i) {
+            swap(&bag[i], &bag[lower]);
+        }
+    }
+    
 }
 
 // adiciona item para lista encadeada
@@ -370,6 +414,7 @@ int showMenu()
     printf("1. Adicionar Item(Loot)\n");
     printf("2. Remover Item\n");
     printf("3. Listar Itens na Mochila\n");
+    printf("4. Organizar Mochila(Ordenar Componente)\n");
     printf("4. Buscar Item por nome\n");
     printf("0 - Sair\n");
     printf("--------------------------------------\n");
