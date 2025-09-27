@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <time.h>
 
 // Código da Ilha – Edição Free Fire
 // Nível: Mestre
@@ -29,6 +30,7 @@ typedef struct Node
     struct Node *nextNode;
 } Node;
 
+int isSorted = 0;  // 0 not sorted, 1 by name, 2 by type, 3by priority
 Node *root = NULL; // inicia um root
 
 struct Item *playerBag; // guarda os itens aqui dentro
@@ -117,14 +119,15 @@ void binarySearch(char iName[], struct Item *bag, int start, int end, int operat
 
     int mid = (start + end) / 2;
 
-    int cmp = strcmp(bag[mid].name, iName);
-    if (cmp == 0)
+    int comparator = strcmp(bag[mid].name, iName);
+    if (comparator == 0)
     {
-        printf("%s achado! total de operacoes: %d\n", bag[mid].name, operations);
-        printf("\n\nPressione enter para voltar...\n");
-        getchar();
+        printf("--- Busca Binaria por Item ---\n");
+        printf("Nome: %s, Tipo: %s, Qtd: %d, Prioridade: %d\n Total de Operacoes de buscar  %d\n", bag[mid].name, bag[mid].type, bag[mid].quantity, bag[mid].priority, operations);
+        // printf("\n\nPressione enter para voltar...\n");
+        // getchar();
     }
-    else if (cmp < 0)
+    else if (comparator < 0)
     {
         binarySearch(iName, bag, mid + 1, end, operations);
     }
@@ -176,7 +179,8 @@ void binarySearch(char iName[], struct Item *bag, int start, int end, int operat
 //     }
 // }
 
-void swap(Item *a, Item *b){
+void swap(Item *a, Item *b)
+{
     Item temp = *a;
     *a = *b;
     *b = temp;
@@ -194,42 +198,45 @@ void bubbleSort(struct Item *bag)
                 // temp = bag[i + 1];
                 // bag[i + 1] = bag[i];
                 // bag[i] = temp;
-                swap(&bag[i+1], &bag[i]);
+                swap(&bag[i + 1], &bag[i]);
             }
         }
     }
 }
 
-void insertionSort(struct Item *bag,int size){
+void insertionSort(struct Item *bag, int size)
+{
     for (int i = 1; i < size; i++)
     {
         Item key = bag[i];
-        int j =  i - 1;
+        int j = i - 1;
 
         while (j >= 0 && strcmp(bag[j].type, key.type) > 0)
         {
-            bag[j+1] = bag[j];
+            bag[j + 1] = bag[j];
             j--;
         }
         bag[j + 1] = key;
     }
-    
 }
 
-void selectionSort(struct Item *bag, int size){
+void selectionSort(struct Item *bag, int size)
+{
     for (int i = 0; i < size; i++)
     {
         int lower = i;
-        for(int j = i+1; j < size; j++) {
-            if(bag[j].priority < bag[lower].priority) {
-                lower =j;
+        for (int j = i + 1; j < size; j++)
+        {
+            if (bag[j].priority < bag[lower].priority)
+            {
+                lower = j;
             }
         }
-        if(lower != i) {
+        if (lower != i)
+        {
             swap(&bag[i], &bag[lower]);
         }
     }
-    
 }
 
 // adiciona item para lista encadeada
@@ -399,9 +406,30 @@ void searchItem(char iName[], int operations)
 
 // limparTela():
 // Simula a limpeza da tela imprimindo várias linhas em branco.
+void clearConsole()
+{
+    for (int i = 0; i < 30; i++)
+    {
+        printf("\n");
+    }
+}
 
 // exibirMenu():
 // Apresenta o menu principal ao jogador, com destaque para status da ordenação.
+
+int sortingMenu()
+{
+    int response;
+    printf("--- Estrategia de Organizacao ---\n");
+    printf("1. Por Nome (Ordem Alfabetica)\n");
+    printf("2. Por Tipo\n");
+    printf("3. Por Prioridade de Montagem\n");
+    printf("0. Cancelar\n");
+    printf("Escolha o criterio: \n");
+
+    scanf("%d", &response);
+    return response;
+}
 
 int showMenu()
 {
@@ -409,13 +437,31 @@ int showMenu()
     printf("===============================================\n");
     printf("   MOCHILA DE SOBREVIVENCIA - CODIGO DA ILHA\n");
     printf("===============================================\n");
-    printf("Itens na Mochila: %d/%d \n\n", itemCount, MAX_ITEM);
+    printf("Itens na Mochila: %d/%d \n", itemCount, MAX_ITEM);
 
-    printf("1. Adicionar Item(Loot)\n");
+    printf("Status da Ordenacao: ");
+    switch (isSorted)
+    {
+    case 0:
+        printf("Nao ordenada!\n");
+        break;
+    case 1:
+        printf("Ordenada por Nome\n");
+        break;
+    case 2:
+        printf("Ordenada por Tipo\n");
+        break;
+    case 3:
+        printf("Ordenada por Prioridade\n");
+    default:
+        break;
+    }
+
+    printf("\n1. Adicionar Item(Loot)\n");
     printf("2. Remover Item\n");
     printf("3. Listar Itens na Mochila\n");
     printf("4. Organizar Mochila(Ordenar Componente)\n");
-    printf("4. Buscar Item por nome\n");
+    printf("5. Buscar Item por nome\n");
     printf("0 - Sair\n");
     printf("--------------------------------------\n");
     printf("Escolha uma opcao: ");
@@ -427,7 +473,7 @@ int showMenu()
 
 void gameLogic(int search)
 {
-
+    clearConsole();
     switch (showMenu())
     {
     case 0:
@@ -435,7 +481,7 @@ void gameLogic(int search)
         exit(0);
         break;
     case 1:
-
+        clearConsole();
         if (itemCount == 10)
         {
             printf("A Mochila esta vazia!\n");
@@ -452,52 +498,133 @@ void gameLogic(int search)
 
                 addItemToLinkedListRoot(addItem(), root);
             }
+            isSorted = 0; // sempre chama para garantir que a lista  ficou embaralhada
         }
         break;
 
     case 2:
-        printf("Digite o nome do item a ser deletado: ");
-        char iName[STRING_SIZE];
-        scanf("%s", iName);
-        clearInput();
-        if (search == 1)
+        clearConsole();
+        if (itemCount == 0)
         {
-
-            removeItemFromBag(iName);
+            printf("\nA lista esta vazia!!!\n");
+            printf("\n\nPressione enter para voltar...\n");
+            getchar();
         }
         else
         {
-            removeLinkedListItem(iName, root);
-        }
+            printf("Digite o nome do item a ser deletado: ");
+            char iName[STRING_SIZE];
+            scanf("%s", iName);
+            clearInput();
+            if (search == 1)
+            {
 
+                removeItemFromBag(iName);
+            }
+            else
+            {
+                removeLinkedListItem(iName, root);
+            }
+        }
         break;
 
     case 3:
-        if (search == 1)
+        clearConsole();
+        if (itemCount == 0)
         {
-            bubbleSort(playerBag);
-        }
-        showBag(search); // colcoar um if para decidir
-        break;
-
-    case 4:
-
-        // searchByName();
-        printf("Digite o nome do item a ser procurado: ");
-        // char iName[STRING_SIZE];
-        scanf("%s", iName);
-        clearInput();
-        int operations = 0;
-        if (search == 0)
-        {
-            binarySearch(iName, playerBag, 0, itemCount - 1, operations);
+            printf("\nA lista esta vazia!!!\n");
         }
         else
         {
-            searchItem(iName, operations);
+            showBag(search);
         }
         printf("\n\nPressione enter para voltar...\n");
         getchar();
+        break;
+
+    case 4:
+        clearConsole();
+        if (search == 1)
+        {
+            switch (sortingMenu())
+            {
+            case 1:
+                clock_t inicio = clock();
+                bubbleSort(playerBag);
+                clock_t fim = clock();
+
+                double tempo = (double)(fim - inicio) / CLOCKS_PER_SEC;
+                printf("Tempo de execucao: %f\n", tempo);
+                isSorted = 1; // organizada por nome
+                printf("Mochila organizada por nome!\n");
+                break;
+
+            case 2:
+                inicio = clock();
+                insertionSort(playerBag, itemCount);
+                isSorted = 2;
+                fim = clock();
+
+                tempo = (double)(fim - inicio) / CLOCKS_PER_SEC;
+                printf("Lista organizada por Tipo!\n");
+                printf("Tempo de execucao: %f\n", tempo);
+                break;
+
+            case 3:
+                inicio = clock();
+                selectionSort(playerBag, itemCount);
+                fim = clock();
+
+                tempo = (double)(fim - inicio) / CLOCKS_PER_SEC;
+                isSorted = 3;
+                printf("Lista organizada por prioridade!\n");
+                printf("Tempo de execucao: %f\n", tempo);
+                break;
+
+            default:
+                printf("Saindo......");
+                break;
+            }
+            printf("\n\nPressione enter para voltar...\n");
+            getchar();
+        }
+        showBag(search); // colcoar um if para decidir
+
+        break;
+
+    case 5:
+        clearConsole();
+        if (isSorted == 1 && itemCount != 0) // adicionar um aviso para caso de lista vazia
+        {
+            // searchByName();
+            printf("Digite o nome do item a ser procurado: ");
+            char iName[STRING_SIZE];
+            scanf("%s", iName);
+            clearInput();
+            int operations = 0;
+            if (search == 1)
+            {
+                clock_t inicio = clock();
+                binarySearch(iName, playerBag, 0, itemCount - 1, operations);
+                clock_t fim = clock();
+
+                double tempo = (double)(fim - inicio) / CLOCKS_PER_SEC;
+                printf("tempo de execucao: %f\n", tempo);
+            }
+            else
+            {
+                searchItem(iName, operations);
+            }
+            printf("\n\nPressione enter para voltar...\n");
+            getchar();
+        }
+        else
+        {
+            printf("ALERTA: A busca binaria requer que a mochila esteja ordenada por NOME.\n");
+            printf("Use a Opcao 4 para organizar a mochila primeiro.\n");
+            printf("\n\nPressione enter para voltar...\n");
+            getchar();
+        }
 
         break;
     default:
